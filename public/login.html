@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orbital — Login</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<nav class="nav">
+  <h1><a href="/" style="color:inherit; text-decoration:none;">Orbital</a></h1>
+  <div class="links"><a href="/">Play</a></div>
+</nav>
+
+<div class="container" style="max-width: 480px;">
+  <section class="panel">
+    <h2 style="margin-top:0;">Log in</h2>
+    <form id="login-form">
+      <label>Username or email</label>
+      <input class="input" id="username" required autocomplete="username">
+
+      <label>Password</label>
+      <input class="input" id="password" type="password" required autocomplete="current-password">
+
+      <div style="margin-top:18px;">
+        <button class="btn" type="submit">Log in</button>
+      </div>
+      <div id="login-error" class="error"></div>
+    </form>
+    <p style="margin-top:18px; color:var(--muted);">No account? <a href="/register.html">Create one</a>.</p>
+  </section>
+</div>
+
+<script src="/js/auth.js"></script>
+<script>
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const err = document.getElementById('login-error');
+  err.textContent = '';
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) { err.textContent = data.error || 'Login failed'; return; }
+    Auth.setSession(data.token, data.user);
+    location.href = '/';
+  } catch (e) {
+    err.textContent = 'Network error.';
+  }
+});
+</script>
+</body>
+</html>

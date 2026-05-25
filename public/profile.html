@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orbital — Profile</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<nav class="nav">
+  <h1><a href="/" style="color:inherit; text-decoration:none;">Orbital</a></h1>
+  <div class="links" id="nav-links">
+    <a href="/">Play</a>
+    <a href="/shop.html">Shop</a>
+    <a href="/vip.html">VIP</a>
+    <a href="/profile.html">Profile</a>
+    <a href="/login.html" id="nav-login">Login</a>
+  </div>
+</nav>
+
+<div class="container">
+  <section class="panel" id="profile-panel">
+    <h2 style="margin-top:0;">My profile</h2>
+    <div id="profile-info">Loading…</div>
+  </section>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="inventory">My cosmetics</div>
+    <div class="tab" data-tab="equipped">Equipped</div>
+  </div>
+
+  <div id="tab-inventory">
+    <div class="grid" id="inventory-grid"></div>
+  </div>
+
+  <div id="tab-equipped" style="display:none;">
+    <section class="panel">
+      <h3 style="margin-top:0;">Equipped cosmetics</h3>
+      <p style="color:var(--muted);">These will appear on your orb in-game. Only items you own can be equipped.</p>
+      <label>Skin</label>
+      <select id="equip-skin" class="input"></select>
+      <label>Trail</label>
+      <select id="equip-trail" class="input"></select>
+      <label>Badge</label>
+      <select id="equip-badge" class="input"></select>
+      <div style="margin-top:16px;">
+        <button class="btn" id="save-equip">Save</button>
+      </div>
+      <div id="equip-status"></div>
+    </section>
+  </div>
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/preview.js"></script>
+<script src="/js/profile.js"></script>
+</body>
+</html>

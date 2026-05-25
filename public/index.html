@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orbital — Multiplayer Arena</title>
+<meta name="description" content="Orbital: a fast-paced multiplayer arena io game. Collect stardust, dodge bigger orbs, dominate the leaderboard.">
+<link rel="stylesheet" href="/css/style.css">
+
+<!--
+  GOOGLE ADSENSE
+  Replace ca-pub-XXXXXXXXXXXXXXXX with your real publisher ID from https://adsense.google.com
+  The script is loaded lazily by /js/ads.js only AFTER the user grants cookie consent (GDPR).
+-->
+</head>
+<body>
+<nav class="nav">
+  <h1>Orbital</h1>
+  <div class="links" id="nav-links">
+    <a href="/shop.html">Shop</a>
+    <a href="/vip.html">VIP</a>
+    <a href="/login.html" id="nav-login">Login</a>
+    <a href="/register.html" class="btn" id="nav-register">Sign up</a>
+  </div>
+</nav>
+
+<div class="container">
+  <section class="hero">
+    <h2>Drift. Absorb. Dominate.</h2>
+    <p>Pilot a glowing orb through a deep-space arena. Collect stardust to grow.
+       Outmaneuver — or absorb — every other player.</p>
+  </section>
+
+  <div class="lobby-ad" id="lobby-ad-1">
+    <!-- AdSense slot: Lobby banner (728x90 leaderboard) -->
+    <!--
+      <ins class="adsbygoogle"
+           style="display:inline-block;width:728px;height:90px"
+           data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+           data-ad-slot="REPLACE_WITH_REAL_SLOT_ID"></ins>
+    -->
+    <span>Ad space (lobby leaderboard)</span>
+  </div>
+
+  <div style="display:grid; grid-template-columns: 1.4fr 1fr; gap: 24px;">
+    <section class="panel">
+      <h3 style="margin-top:0;">Play now</h3>
+      <label>Nickname</label>
+      <input id="nickname" class="input" maxlength="16" placeholder="Type a name (or leave blank for Guest)">
+
+      <label style="margin-top:18px;">Pick a server</label>
+      <div class="rooms-list" id="rooms-list"></div>
+
+      <label style="margin-top:18px;">Or join a private room code</label>
+      <div style="display:flex; gap:8px;">
+        <input id="room-code" class="input" maxlength="8" placeholder="ABCD" style="text-transform:uppercase;">
+        <button class="btn secondary" id="join-code-btn">Join code</button>
+      </div>
+
+      <div style="margin-top:24px; display:flex; gap:10px;">
+        <button class="btn" id="play-btn">Play</button>
+        <button class="btn gold" id="vip-btn" onclick="location.href='/vip.html'">★ Go VIP — $4.99/mo</button>
+      </div>
+      <div id="play-error" class="error"></div>
+    </section>
+
+    <section class="panel">
+      <h3 style="margin-top:0;">How to play</h3>
+      <ul style="padding-left:18px; color: var(--muted); line-height:1.7;">
+        <li>Move your mouse to steer your orb</li>
+        <li>Hold <b>Space</b> or right-click to boost (costs mass)</li>
+        <li>Absorb smaller orbs by getting close</li>
+        <li>Avoid orbs that are bigger than you</li>
+        <li>Press <b>F</b> to enter fullscreen</li>
+      </ul>
+      <h3>Top players (this server)</h3>
+      <ol class="leaderboard-list" id="global-leaderboard">
+        <li>—</li>
+      </ol>
+    </section>
+  </div>
+</div>
+
+<!-- GDPR / cookie consent — loaded BEFORE AdSense initializes -->
+<div id="gdpr-banner">
+  <p>We use cookies for analytics and to show personalised ads (via Google AdSense).
+     Click <b>Accept</b> to allow personalised ads, <b>Reject</b> for non-personalised only.
+     <a href="/privacy.html">Learn more</a></p>
+  <div class="actions">
+    <button class="btn secondary" id="gdpr-reject">Reject</button>
+    <button class="btn" id="gdpr-accept">Accept</button>
+  </div>
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/ads.js"></script>
+<script src="/js/lobby.js"></script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: orbital
+    env: node
+    plan: starter
+    buildCommand: npm install --omit=dev
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: orbital-db
+          property: connectionString
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_VIP_PRICE_ID
+        sync: false
+      - key: ADSENSE_PUBLISHER_ID
+        sync: false
+      - key: PUBLIC_URL
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+
+databases:
+  - name: orbital-db
+    plan: starter
+    databaseName: orbital

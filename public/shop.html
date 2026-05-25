@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orbital — Shop</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<nav class="nav">
+  <h1><a href="/" style="color:inherit; text-decoration:none;">Orbital</a></h1>
+  <div class="links" id="nav-links">
+    <a href="/">Play</a>
+    <a href="/shop.html">Shop</a>
+    <a href="/vip.html">VIP</a>
+    <a href="/profile.html">Profile</a>
+    <a href="/login.html" id="nav-login">Login</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div id="login-prompt" class="panel" style="display:none;">
+    <h3 style="margin-top:0;">Sign in to buy cosmetics</h3>
+    <p>Purchases are tied to your account. <a href="/login.html">Log in</a> or <a href="/register.html">create an account</a> first.</p>
+  </div>
+
+  <section class="panel">
+    <h2 style="margin-top:0;">Cosmetic shop</h2>
+    <p style="color:var(--muted);">All cosmetics are one-time purchases and permanently tied to your account. Stripe handles payment securely.</p>
+    <div id="purchase-banner"></div>
+  </section>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="all">All</div>
+    <div class="tab" data-tab="skin">Skins</div>
+    <div class="tab" data-tab="trail">Trails</div>
+    <div class="tab" data-tab="badge">Badges</div>
+    <div class="tab" data-tab="hat">Hats</div>
+  </div>
+
+  <div class="grid" id="shop-grid"></div>
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/preview.js"></script>
+<script src="/js/shop.js"></script>
+</body>
+</html>

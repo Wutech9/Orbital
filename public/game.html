@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Orbital — Playing</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<canvas id="game-canvas"></canvas>
+
+<div id="ui-overlay">
+  <div class="hud-score">
+    <div class="label">Score</div>
+    <div class="val" id="hud-score">0</div>
+    <div class="label" style="margin-top:6px;">Mass</div>
+    <div class="val" id="hud-mass" style="font-size:16px;">—</div>
+  </div>
+
+  <div class="hud-leaderboard">
+    <h3>Leaderboard</h3>
+    <ol id="hud-leaderboard"></ol>
+  </div>
+
+  <canvas id="minimap" width="180" height="180"></canvas>
+
+  <!-- Sidebar ad (desktop only, hidden for VIP via .is-vip on <body>) -->
+  <div class="sidebar-ad" id="sidebar-ad">
+    <!--
+      <ins class="adsbygoogle"
+           style="display:inline-block;width:160px;height:600px"
+           data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+           data-ad-slot="REPLACE_WITH_REAL_SLOT_ID"></ins>
+    -->
+    <span>Ad (sidebar)</span>
+  </div>
+
+  <div class="death-overlay" id="death-overlay">
+    <h2>You were absorbed</h2>
+    <div class="countdown" id="respawn-countdown">Respawn in 5s</div>
+    <div class="ad-slot" id="death-ad">
+      <!--
+        <ins class="adsbygoogle"
+             style="display:inline-block;width:336px;height:280px"
+             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+             data-ad-slot="REPLACE_WITH_REAL_SLOT_ID"></ins>
+      -->
+      <span>Ad (death screen)</span>
+    </div>
+    <div style="display:flex; gap:10px;">
+      <button class="btn" id="respawn-btn" disabled>Respawn</button>
+      <button class="btn secondary" onclick="location.href='/'">Back to menu</button>
+    </div>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/ads.js"></script>
+<script src="/js/game.js"></script>
+</body>
+</html>

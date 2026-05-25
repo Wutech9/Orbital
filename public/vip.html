@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orbital — VIP</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<nav class="nav">
+  <h1><a href="/" style="color:inherit; text-decoration:none;">Orbital</a></h1>
+  <div class="links" id="nav-links">
+    <a href="/">Play</a>
+    <a href="/shop.html">Shop</a>
+    <a href="/vip.html">VIP</a>
+    <a href="/profile.html">Profile</a>
+    <a href="/login.html" id="nav-login">Login</a>
+  </div>
+</nav>
+
+<div class="container">
+  <section class="panel" style="text-align:center;">
+    <h2 style="margin-top:0; font-size: 36px;">
+      ★ <span style="color:var(--gold);">Orbital VIP</span>
+    </h2>
+    <p style="color:var(--muted); font-size: 16px;">$4.99 / month — cancel anytime</p>
+    <div id="vip-status" style="margin: 16px 0;"></div>
+
+    <ul class="benefit-list" style="display:inline-block; text-align:left; margin: 16px auto;">
+      <li>All ads removed completely</li>
+      <li>Exclusive <b>Nebula</b> skin unlocked instantly</li>
+      <li>Gold crown badge next to your name, visible to everyone</li>
+      <li>Access to private VIP-only servers</li>
+      <li>+10% score boost from every stardust pickup</li>
+    </ul>
+
+    <div style="margin-top: 24px;">
+      <button class="btn gold" id="subscribe-btn" style="padding: 14px 32px; font-size: 16px;">
+        Subscribe — $4.99/mo
+      </button>
+      <button class="btn secondary" id="portal-btn" style="display:none;">Manage subscription</button>
+    </div>
+    <div id="vip-error" class="error"></div>
+  </section>
+
+  <section class="panel">
+    <h3 style="margin-top:0;">Frequently asked</h3>
+    <p><b>Can I cancel?</b> Yes — click "Manage subscription" any time. Benefits stay active until the period ends.</p>
+    <p><b>Where are VIP servers?</b> The "VIP Lounge" server appears in the room list once you're subscribed.</p>
+    <p><b>Is payment secure?</b> Yes — payments are processed by Stripe; we never see your card details.</p>
+  </section>
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/vip.js"></script>
+</body>
+</html>

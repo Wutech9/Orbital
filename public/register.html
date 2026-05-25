@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orbital — Sign up</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<nav class="nav">
+  <h1><a href="/" style="color:inherit; text-decoration:none;">Orbital</a></h1>
+  <div class="links"><a href="/">Play</a></div>
+</nav>
+
+<div class="container" style="max-width: 480px;">
+  <section class="panel">
+    <h2 style="margin-top:0;">Create an account</h2>
+    <p style="color:var(--muted);">Saves your nickname, cosmetics, and VIP status. Guests can still play without an account.</p>
+    <form id="register-form">
+      <label>Username (3–16 chars, letters/digits/underscore)</label>
+      <input class="input" id="username" required autocomplete="username" maxlength="16">
+
+      <label>Email</label>
+      <input class="input" id="email" type="email" required autocomplete="email">
+
+      <label>Password (min 8 chars)</label>
+      <input class="input" id="password" type="password" required autocomplete="new-password" minlength="8">
+
+      <div style="margin-top:18px;">
+        <button class="btn" type="submit">Sign up</button>
+      </div>
+      <div id="register-error" class="error"></div>
+    </form>
+    <p style="margin-top:18px; color:var(--muted);">Already have one? <a href="/login.html">Log in</a>.</p>
+  </section>
+</div>
+
+<script src="/js/auth.js"></script>
+<script>
+document.getElementById('register-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const err = document.getElementById('register-error');
+  err.textContent = '';
+  const username = document.getElementById('username').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  try {
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) { err.textContent = data.error || 'Sign up failed'; return; }
+    Auth.setSession(data.token, data.user);
+    location.href = '/';
+  } catch (e) {
+    err.textContent = 'Network error.';
+  }
+});
+</script>
+</body>
+</html>
