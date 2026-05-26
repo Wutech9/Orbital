@@ -183,6 +183,58 @@ label { display: block; font-size: 13px; color: var(--muted); margin: 12px 0 6px
   border: 1px solid var(--panel-border); border-radius: 8px;
 }
 
+/* diep.io-style stat upgrade bar (bottom left) */
+#stat-bar {
+  position: absolute; bottom: 70px; left: 16px;
+  display: flex; flex-direction: column; gap: 4px;
+  background: rgba(8, 10, 22, 0.7);
+  padding: 10px; border-radius: 8px;
+  border: 1px solid var(--panel-border);
+  backdrop-filter: blur(6px);
+  min-width: 260px;
+}
+.stat-row {
+  display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 8px;
+  font-size: 12px;
+}
+.stat-label { color: var(--text); white-space: nowrap; }
+.stat-pips { display: inline-flex; gap: 2px; }
+.stat-pip {
+  width: 10px; height: 10px; border-radius: 2px;
+  border: 1px solid rgba(255,255,255,0.25); background: transparent;
+}
+.stat-plus {
+  width: 24px; height: 22px; border-radius: 4px;
+  border: none; color: white; font-weight: 700; cursor: pointer;
+  background: var(--accent); padding: 0;
+}
+.stat-plus:disabled { cursor: not-allowed; opacity: 0.5; }
+
+#stat-points-wrap {
+  position: absolute; bottom: 36px; left: 16px;
+  display: flex; gap: 10px; align-items: center;
+}
+#stat-points {
+  background: rgba(8, 10, 22, 0.7); padding: 4px 10px;
+  border-radius: 6px; border: 1px solid var(--panel-border);
+  font-size: 12px; color: var(--muted);
+}
+.mode-indicator {
+  padding: 4px 10px; border-radius: 6px; font-size: 11px;
+  font-weight: 700; letter-spacing: 1px;
+  background: var(--accent); color: white;
+}
+#autospin-indicator { background: var(--accent-2); color: #111; }
+
+#controls-hint {
+  position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+  text-align: center; font-size: 11px; color: var(--muted);
+  background: rgba(8, 10, 22, 0.5);
+  padding: 6px 12px; border-radius: 6px;
+  pointer-events: none;
+  line-height: 1.5;
+}
+
 .death-overlay {
   position: absolute; inset: 0;
   background: rgba(3, 4, 10, 0.85);

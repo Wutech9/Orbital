@@ -35,9 +35,22 @@
     <span>Ad (sidebar)</span>
   </div>
 
+  <!-- Stat upgrade bar (diep.io style, bottom left) -->
+  <div id="stat-bar"></div>
+  <div id="stat-points-wrap">
+    <span id="stat-points">0 points</span>
+    <span id="autofire-indicator" class="mode-indicator" style="display:none;">AUTO-FIRE</span>
+    <span id="autospin-indicator" class="mode-indicator" style="display:none;">AUTO-SPIN</span>
+  </div>
+  <div id="controls-hint">
+    <div>WASD move · mouse aim · click/space fire</div>
+    <div>1–8 upgrade · E auto-fire · C auto-spin · F fullscreen</div>
+  </div>
+
   <div class="death-overlay" id="death-overlay">
-    <h2>You were absorbed</h2>
-    <div class="countdown" id="respawn-countdown">Respawn in 5s</div>
+    <h2>You were destroyed</h2>
+    <div id="death-fact" style="color:var(--muted); margin-bottom:8px;"></div>
+    <div class="countdown" id="respawn-countdown">Respawn in 3s</div>
     <div class="ad-slot" id="death-ad">
       <!--
         <ins class="adsbygoogle"

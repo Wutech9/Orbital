@@ -198,20 +198,27 @@ function registerSocketHandlers(io) {
       }
     });
 
+    socket.on('upgrade', (stat) => {
+      for (const world of rooms.values()) {
+        const p = world.getPlayerBySocket(socket.id);
+        if (p) { world.upgradeStat(p, stat); break; }
+      }
+    });
+
     socket.on('respawn', () => {
       const now = Date.now();
       for (const world of rooms.values()) {
         const p = world.getPlayerBySocket(socket.id);
         if (!p) continue;
         if (world.canRespawn(p, now)) {
-          world.respawn(p);
-          // persist high score
-          if (p.userId && p.score > 0) {
+          // persist high score before reset
+          if (p.userId && p.totalScore > 0) {
             db.query(
               'UPDATE users SET high_score = GREATEST(high_score, $1) WHERE id = $2',
-              [p.score, p.userId],
+              [p.totalScore, p.userId],
             ).catch(() => {});
           }
+          world.respawn(p);
         }
         return;
       }
