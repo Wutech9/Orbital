@@ -12,7 +12,7 @@
 ```
 Hey! I made a free real-time multiplayer tank arena io game. WASD + mouse + click. Destroy shapes for XP, level up, spend points on 8 stats. Browser only, no install.
 
-→ https://orbital-production-45a9.up.railway.app/
+→ https://playorbital.up.railway.app/
 
 What I'd love feedback on:
 1. Does the cannon recoil feel right?

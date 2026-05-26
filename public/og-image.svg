@@ -37,5 +37,5 @@
   <!-- title -->
   <text x="600" y="180" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="800" font-size="110" fill="url(#title)" letter-spacing="2">ORBITAL</text>
   <text x="600" y="240" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="500" font-size="32" fill="#E6E9F5" opacity="0.85">Free multiplayer tank arena · play in your browser</text>
-  <text x="600" y="560" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="600" font-size="24" fill="#22d3ee">orbital-production-45a9.up.railway.app</text>
+  <text x="600" y="560" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="600" font-size="24" fill="#22d3ee">playorbital.up.railway.app</text>
 </svg>

@@ -7,7 +7,7 @@ Free, organic growth channels only. Nothing here requires payment.
 ## Live URL
 
 ```
-https://orbital-production-45a9.up.railway.app/
+https://playorbital.up.railway.app/
 ```
 
 ## Folders

@@ -13,7 +13,7 @@ Just launched a free multiplayer io game called Orbital. It's a diep.io-style ta
 
 Free, no signup needed, runs in your browser.
 
-→ https://orbital-production-45a9.up.railway.app/
+→ https://playorbital.up.railway.app/
 
 A few things that might be interesting:
 - Server-authoritative — no client-side cheats possible

@@ -18,7 +18,7 @@ Hey! I just shipped a free multiplayer tank arena io game called **Orbital**.
 
 WASD + mouse + click to fire. Diep.io-style controls. Destroy shapes for XP, level up to 45, spend stat points on 8 stats. Auto-fire (E) and auto-spin (C) supported.
 
-🌐 https://orbital-production-45a9.up.railway.app/
+🌐 https://playorbital.up.railway.app/
 
 Looking for early feedback — what feels off, what's missing. I'll be in #showcase for the next few hours if you want to chat.
 ```

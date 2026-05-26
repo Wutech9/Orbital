@@ -8,7 +8,7 @@ Just shipped Orbital — a free multiplayer tank arena io game. Controls like di
 
 No download. No signup. Plays in your browser.
 
-→ https://orbital-production-45a9.up.railway.app/
+→ https://playorbital.up.railway.app/
 
 #iogame #gamedev #indiedev #webgame
 ```
@@ -19,7 +19,7 @@ No download. No signup. Plays in your browser.
    ```
    Built a multiplayer tank.io game over a weekend with Node.js + Socket.io + HTML5 Canvas. 350 destructible shapes per arena, server-authoritative 30Hz tick, stat-upgrade trees.
 
-   Free to play, no signup → https://orbital-production-45a9.up.railway.app/
+   Free to play, no signup → https://playorbital.up.railway.app/
 
    #gamedev #indiedev #100daysofcode
    ```
@@ -30,7 +30,7 @@ No download. No signup. Plays in your browser.
 
    Orbital — free multiplayer tank arena, plays in your browser. Made for the diep.io / agar.io crowd.
 
-   → https://orbital-production-45a9.up.railway.app/
+   → https://playorbital.up.railway.app/
 
    #iogame #browsergame
    ```
@@ -39,7 +39,7 @@ No download. No signup. Plays in your browser.
    ```
    What's a fair price for an io game in 2026? Mine charges $0.
 
-   Free, no install, no login → https://orbital-production-45a9.up.railway.app/
+   Free, no install, no login → https://playorbital.up.railway.app/
    ```
    (Attach the og-image.svg exported as PNG.)
 

@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /api/
 
-Sitemap: https://orbital-production-45a9.up.railway.app/sitemap.xml
+Sitemap: https://playorbital.up.railway.app/sitemap.xml

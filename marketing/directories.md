@@ -20,7 +20,7 @@ All free. Most take 2–5 minutes per submission. Submit on Day 1 of launch.
 
 ## What you submit (have these ready)
 
-- **URL:** https://orbital-production-45a9.up.railway.app/
+- **URL:** https://playorbital.up.railway.app/
 - **Title:** Orbital
 - **Short description (140 chars):**
   > Free browser tank shooter. Destroy shapes, level up, dominate the arena. WASD + mouse. No download.
