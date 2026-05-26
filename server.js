@@ -124,9 +124,30 @@ const io = new SocketServer(server, {
 
 registerSocketHandlers(io);
 
-server.listen(PORT, () => {
-  console.log(`Orbital running on http://localhost:${PORT} (${IS_PROD ? 'prod' : 'dev'})`);
-});
+// Auto-initialise DB schema on startup. schema.sql uses IF NOT EXISTS for every
+// statement, so this is idempotent and safe to run on every boot.
+async function bootstrap() {
+  if (process.env.DATABASE_URL) {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const db = require('./server/db');
+      const sql = fs.readFileSync(path.join(__dirname, 'server', 'db', 'schema.sql'), 'utf8');
+      await db.query(sql);
+      console.log('[db] schema verified');
+    } catch (err) {
+      console.error('[db] schema bootstrap failed:', err.message);
+    }
+  } else {
+    console.warn('[db] DATABASE_URL not set; skipping schema bootstrap');
+  }
+
+  server.listen(PORT, () => {
+    console.log(`Orbital running on http://localhost:${PORT} (${IS_PROD ? 'prod' : 'dev'})`);
+  });
+}
+
+bootstrap();
 
 // Hardening: don't crash on unhandled promise rejections in prod
 process.on('unhandledRejection', (err) => console.error('unhandledRejection', err));
