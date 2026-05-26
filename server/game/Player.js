@@ -58,6 +58,16 @@ class Player {
     this.alive = true;
     this.deadAt = 0;
 
+    // Class + abilities
+    this.tankClass = 'cosmonaut';      // 'cosmonaut' | 'singularity' | 'bombardier' | 'phantom' | 'overdrive'
+    this.cooldowns = { q: 0, r: 0 };   // ms until ability ready
+    this.effects = {
+      phaseShiftUntil: 0,
+      hyperfireUntil: 0,
+      phaseShotBonusUntil: 0,
+      stunUntil: 0,
+    };
+
     // Input intent
     this.moveX = 0;
     this.moveY = 0;
@@ -94,6 +104,13 @@ class Player {
     this.deadAt = 0;
     this.autofire = false;
     this.autospin = false;
+    this.tankClass = 'cosmonaut';
+    this.cooldowns.q = 0;
+    this.cooldowns.r = 0;
+    this.effects.phaseShiftUntil = 0;
+    this.effects.hyperfireUntil = 0;
+    this.effects.phaseShotBonusUntil = 0;
+    this.effects.stunUntil = 0;
     this.recomputeDerived();
   }
 
@@ -191,6 +208,10 @@ class Player {
       badge: this.badge,
       vip: this.isVip,
       alive: this.alive,
+      cls: this.tankClass,
+      // tell others if visually phased
+      ph: this.isPhased(Date.now()) ? 1 : 0,
+      hf: this.isHyperfiring(Date.now()) ? 1 : 0,
     };
   }
 
@@ -203,8 +224,13 @@ class Player {
     s.score = this.totalScore;
     s.autofire = this.autofire;
     s.autospin = this.autospin;
+    s.cooldowns = { q: Math.max(0, this.cooldowns.q), r: Math.max(0, this.cooldowns.r) };
     return s;
   }
+
+  isPhased(now) { return now < this.effects.phaseShiftUntil; }
+  isHyperfiring(now) { return now < this.effects.hyperfireUntil; }
+  isStunned(now) { return now < this.effects.stunUntil; }
 }
 
 function sanitizeName(raw) {

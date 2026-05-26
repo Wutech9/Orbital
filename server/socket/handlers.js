@@ -205,6 +205,33 @@ function registerSocketHandlers(io) {
       }
     });
 
+    socket.on('select_class', (classId, cb) => {
+      for (const world of rooms.values()) {
+        const p = world.getPlayerBySocket(socket.id);
+        if (p) {
+          const res = world.selectClass(p, classId);
+          if (typeof cb === 'function') cb(res);
+          return;
+        }
+      }
+      if (typeof cb === 'function') cb({ ok: false, error: 'Not in a game' });
+    });
+
+    socket.on('ability', (payload, cb) => {
+      const now = Date.now();
+      const slot = payload && payload.slot;
+      const target = payload && payload.target;
+      for (const world of rooms.values()) {
+        const p = world.getPlayerBySocket(socket.id);
+        if (p) {
+          const res = world.castAbility(p, slot, target, now);
+          if (typeof cb === 'function') cb(res);
+          return;
+        }
+      }
+      if (typeof cb === 'function') cb({ ok: false, error: 'Not in a game' });
+    });
+
     socket.on('respawn', () => {
       const now = Date.now();
       for (const world of rooms.values()) {

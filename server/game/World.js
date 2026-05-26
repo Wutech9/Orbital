@@ -1,6 +1,7 @@
 'use strict';
 
 const { Player } = require('./Player');
+const { ABILITY_DEFS, CLASSES, abilityForClassSlot, getAbility } = require('./abilities');
 
 const WORLD_SIZE = 4500;
 const TICK_RATE = 30;
@@ -24,6 +25,8 @@ const FRICTION = 0.86;            // applied each tick to recoil/knockback
 
 let shapeCounter = 1;
 let bulletCounter = 1;
+let fxCounter = 1;
+function nextFxId() { return fxCounter++; }
 
 class World {
   constructor({ id, name, vipOnly = false }) {
@@ -35,6 +38,10 @@ class World {
     this.socketToPlayer = new Map();
     this.shapes = new Map();
     this.bullets = new Map();
+    this.blackHoles = new Map();      // active gravity wells
+    this.strikes = new Map();         // pending orbital strikes
+    this.empPulses = [];              // ephemeral visual events (one-tick)
+    this.shellHits = [];              // ephemeral visual events (one-tick)
     this.lastTick = Date.now();
     this.events = [];
 
@@ -111,6 +118,266 @@ class World {
     return player.tryUpgradeStat(stat);
   }
 
+  // ---------- Class selection ----------
+
+  selectClass(player, classId) {
+    if (!CLASSES[classId]) return { ok: false, error: 'Unknown class' };
+    if (player.level < 15) return { ok: false, error: 'Reach level 15 first' };
+    if (player.tankClass !== 'cosmonaut') return { ok: false, error: 'Class already selected this life' };
+    if (classId === 'cosmonaut') return { ok: false, error: 'Pick a real class' };
+    player.tankClass = classId;
+    this.events.push({ type: 'class_picked', id: player.id, cls: classId });
+    return { ok: true };
+  }
+
+  // ---------- Ability casting ----------
+
+  castAbility(player, slot, target, now) {
+    if (!player.alive) return { ok: false, error: 'dead' };
+    if (slot !== 'q' && slot !== 'r') return { ok: false, error: 'bad slot' };
+    if (player.cooldowns[slot] > now) return { ok: false, error: 'cooldown' };
+
+    let abil;
+    if (slot === 'q') {
+      abil = ABILITY_DEFS.emp; // universal
+    } else {
+      abil = abilityForClassSlot(player.tankClass, 'r');
+      if (!abil) return { ok: false, error: 'No R ability — pick a class' };
+    }
+    if (player.level < (abil.levelReq || 1)) return { ok: false, error: `Need level ${abil.levelReq}` };
+
+    // Validate target if needed (cast range)
+    let tx = player.x, ty = player.y;
+    if (target && Number.isFinite(target.x) && Number.isFinite(target.y)) {
+      tx = target.x; ty = target.y;
+      if (abil.castRange) {
+        const dx = tx - player.x, dy = ty - player.y;
+        const d = Math.hypot(dx, dy);
+        if (d > abil.castRange) {
+          // clamp to max range
+          tx = player.x + (dx / d) * abil.castRange;
+          ty = player.y + (dy / d) * abil.castRange;
+        }
+      }
+    }
+
+    // Dispatch
+    switch (abil.id) {
+      case 'emp':           this.castEMP(player, abil, now); break;
+      case 'blackhole':     this.castBlackHole(player, abil, tx, ty, now); break;
+      case 'orbitalstrike': this.castOrbitalStrike(player, abil, tx, ty, now); break;
+      case 'phaseshift':    this.castPhaseShift(player, abil, now); break;
+      case 'hyperfire':     this.castHyperfire(player, abil, now); break;
+      default: return { ok: false, error: 'unsupported' };
+    }
+    player.cooldowns[slot] = now + abil.cooldownMs;
+    return { ok: true };
+  }
+
+  castEMP(player, abil, now) {
+    const dmg = abil.damage(player.level);
+    const r2 = abil.radius * abil.radius;
+    // damage + knockback all enemies in range
+    for (const p of this.players.values()) {
+      if (p === player || !p.alive || p.isPhased(now)) continue;
+      const dx = p.x - player.x, dy = p.y - player.y;
+      const d2 = dx * dx + dy * dy;
+      if (d2 < r2) {
+        const d = Math.sqrt(d2) || 1;
+        const nx = dx / d, ny = dy / d;
+        const died = p.takeDamage(dmg, now);
+        p.vx += nx * abil.knockback;
+        p.vy += ny * abil.knockback;
+        p.effects.stunUntil = Math.max(p.effects.stunUntil, now + 300);
+        if (died) {
+          player.addXP(80 + p.level * 5);
+          this.events.push({ type: 'killed', victim: p.id, killer: player.id, ability: 'emp' });
+        }
+      }
+    }
+    // damage shapes too
+    for (const [sid, s] of this.shapes) {
+      const dx = s.x - player.x, dy = s.y - player.y;
+      if (dx * dx + dy * dy < r2) {
+        s.hp -= dmg;
+        if (s.hp <= 0) {
+          const def = SHAPE_DEFS[s.type];
+          this.shapes.delete(sid);
+          player.addXP(def.xp);
+        }
+      }
+    }
+    // visual marker for clients (one-tick)
+    this.empPulses.push({ id: nextFxId(), x: player.x, y: player.y, r: abil.radius, t: now });
+  }
+
+  castBlackHole(player, abil, x, y, now) {
+    const id = nextFxId();
+    this.blackHoles.set(id, {
+      id,
+      ownerId: player.id,
+      x, y,
+      bornAt: now,
+      explodesAt: now + abil.durationMs,
+      pullRadius: abil.pullRadius,
+      pullForce: abil.pullForcePerSec,
+      explosionRadius: abil.explosionRadius,
+      explosionDamage: abil.explosionDamage(player.level),
+    });
+    this.events.push({ type: 'blackhole_cast', x, y });
+  }
+
+  castOrbitalStrike(player, abil, x, y, now) {
+    const id = nextFxId();
+    // Pre-generate the shell positions so all clients see the same fall
+    const shells = [];
+    for (let i = 0; i < abil.shellCount; i++) {
+      const ang = Math.random() * Math.PI * 2;
+      const dist = Math.random() * abil.targetRadius;
+      shells.push({
+        x: x + Math.cos(ang) * dist,
+        y: y + Math.sin(ang) * dist,
+        landsAt: now + abil.warningMs + i * 80, // slight stagger
+        radius: abil.shellRadius,
+        damage: abil.damagePerShell(player.level),
+        landed: false,
+      });
+    }
+    this.strikes.set(id, {
+      id,
+      ownerId: player.id,
+      x, y,
+      warningUntil: now + abil.warningMs,
+      targetRadius: abil.targetRadius,
+      shells,
+      doneAt: now + abil.warningMs + (abil.shellCount * 80) + 200,
+    });
+    this.events.push({ type: 'strike_cast', x, y });
+  }
+
+  castPhaseShift(player, abil, now) {
+    player.effects.phaseShiftUntil = now + abil.durationMs;
+    player.effects.phaseShotBonusUntil = now + abil.durationMs + 1500;
+    // tiny heal as the "phase out" effect
+    player.hp = Math.min(player.maxHp, player.hp + 20);
+  }
+
+  castHyperfire(player, abil, now) {
+    player.effects.hyperfireUntil = now + abil.durationMs;
+  }
+
+  // ---------- Tick step: black holes & strikes ----------
+
+  tickAbilityEntities(now, dt) {
+    // Black holes
+    for (const [id, bh] of this.blackHoles) {
+      // Pull entities in
+      const pullR2 = bh.pullRadius * bh.pullRadius;
+      const tickPull = bh.pullForce * dt;
+      for (const p of this.players.values()) {
+        if (!p.alive || p.isPhased(now)) continue;
+        const dx = bh.x - p.x, dy = bh.y - p.y;
+        const d2 = dx * dx + dy * dy;
+        if (d2 < pullR2 && d2 > 100) {
+          const d = Math.sqrt(d2);
+          p.vx += (dx / d) * tickPull;
+          p.vy += (dy / d) * tickPull;
+        }
+      }
+      for (const s of this.shapes.values()) {
+        const dx = bh.x - s.x, dy = bh.y - s.y;
+        const d2 = dx * dx + dy * dy;
+        if (d2 < pullR2 && d2 > 100) {
+          const d = Math.sqrt(d2);
+          s.vx += (dx / d) * tickPull * 0.5;
+          s.vy += (dy / d) * tickPull * 0.5;
+        }
+      }
+      for (const b of this.bullets.values()) {
+        const dx = bh.x - b.x, dy = bh.y - b.y;
+        const d2 = dx * dx + dy * dy;
+        if (d2 < pullR2 && d2 > 100) {
+          const d = Math.sqrt(d2);
+          b.vx += (dx / d) * tickPull * 1.2;
+          b.vy += (dy / d) * tickPull * 1.2;
+        }
+      }
+
+      // Explode at end of life
+      if (now >= bh.explodesAt) {
+        const r2 = bh.explosionRadius * bh.explosionRadius;
+        const owner = this.players.get(bh.ownerId);
+        for (const p of this.players.values()) {
+          if (!p.alive || p.isPhased(now)) continue;
+          // owners can hurt themselves with black hole — intentional risk
+          const dx = p.x - bh.x, dy = p.y - bh.y;
+          if (dx * dx + dy * dy < r2) {
+            const died = p.takeDamage(bh.explosionDamage, now);
+            // knockback outward
+            const d = Math.sqrt(dx * dx + dy * dy) || 1;
+            p.vx += (dx / d) * 350;
+            p.vy += (dy / d) * 350;
+            if (died) {
+              if (owner && owner.alive && owner !== p) {
+                owner.addXP(80 + p.level * 5);
+              }
+              this.events.push({ type: 'killed', victim: p.id, killer: bh.ownerId, ability: 'blackhole' });
+            }
+          }
+        }
+        for (const [sid, s] of this.shapes) {
+          const dx = s.x - bh.x, dy = s.y - bh.y;
+          if (dx * dx + dy * dy < r2) {
+            s.hp -= bh.explosionDamage * 0.5;
+            if (s.hp <= 0) {
+              this.shapes.delete(sid);
+              if (owner && owner.alive) owner.addXP(SHAPE_DEFS[s.type].xp);
+            }
+          }
+        }
+        this.events.push({ type: 'blackhole_explode', x: bh.x, y: bh.y, r: bh.explosionRadius });
+        this.blackHoles.delete(id);
+      }
+    }
+
+    // Orbital strikes
+    for (const [id, strike] of this.strikes) {
+      for (const shell of strike.shells) {
+        if (shell.landed) continue;
+        if (now >= shell.landsAt) {
+          shell.landed = true;
+          const r2 = shell.radius * shell.radius;
+          const owner = this.players.get(strike.ownerId);
+          for (const p of this.players.values()) {
+            if (!p.alive || p.isPhased(now)) continue;
+            const dx = p.x - shell.x, dy = p.y - shell.y;
+            if (dx * dx + dy * dy < r2) {
+              const died = p.takeDamage(shell.damage, now);
+              if (died) {
+                if (owner && owner.alive && owner !== p) {
+                  owner.addXP(80 + p.level * 5);
+                }
+                this.events.push({ type: 'killed', victim: p.id, killer: strike.ownerId, ability: 'orbitalstrike' });
+              }
+            }
+          }
+          for (const [sid, s] of this.shapes) {
+            const dx = s.x - shell.x, dy = s.y - shell.y;
+            if (dx * dx + dy * dy < r2) {
+              s.hp -= shell.damage * 0.6;
+              if (s.hp <= 0) {
+                this.shapes.delete(sid);
+                if (owner && owner.alive) owner.addXP(SHAPE_DEFS[s.type].xp);
+              }
+            }
+          }
+          this.shellHits.push({ id: nextFxId(), x: shell.x, y: shell.y, r: shell.radius, t: now });
+        }
+      }
+      if (now >= strike.doneAt) this.strikes.delete(id);
+    }
+  }
+
   // ---------- Tick ----------
 
   step() {
@@ -121,6 +388,7 @@ class World {
     this.tickPlayers(now, dt);
     this.tickShapes(dt);
     this.tickBullets(now, dt);
+    this.tickAbilityEntities(now, dt);
     this.collisions(now);
     this.regen(now, dt);
     this.respawnShapes();
@@ -131,7 +399,9 @@ class World {
       if (!p.alive) continue;
 
       // movement
-      const sp = p.speed;
+      let sp = p.speed;
+      if (p.isPhased(now)) sp *= 1.85;
+      if (p.isStunned(now)) sp *= 0.4;
       p.vx = p.vx * FRICTION + p.moveX * sp * (1 - FRICTION);
       p.vy = p.vy * FRICTION + p.moveY * sp * (1 - FRICTION);
       p.x += p.vx * dt;
@@ -147,9 +417,11 @@ class World {
       // shooting
       p.cooldown -= dt * 1000;
       const wantsShoot = p.shoot || p.autofire || p.autospin;
-      if (wantsShoot && p.cooldown <= 0) {
+      if (wantsShoot && p.cooldown <= 0 && !p.isStunned(now)) {
         this.fireBullet(p, now);
-        p.cooldown = p.reloadMs;
+        // Hyperfire shrinks reload
+        const reloadMul = p.isHyperfiring(now) ? 0.35 : 1;
+        p.cooldown = p.reloadMs * reloadMul;
       }
 
       // clamp to world
@@ -161,13 +433,21 @@ class World {
   }
 
   fireBullet(p, now) {
-    const def = SHAPE_DEFS;
     const tipDist = p.radius * 1.2;
     const bx = p.x + Math.cos(p.heading) * tipDist;
     const by = p.y + Math.sin(p.heading) * tipDist;
     const vx = Math.cos(p.heading) * p.bulletSpeed;
     const vy = Math.sin(p.heading) * p.bulletSpeed;
     const id = bulletCounter++;
+
+    // Damage multipliers from active effects
+    let dmgMul = 1;
+    if (p.isHyperfiring(now)) dmgMul *= 1.5;
+    if (now < p.effects.phaseShotBonusUntil) {
+      dmgMul *= 2.0;
+      p.effects.phaseShotBonusUntil = 0; // consume bonus
+    }
+
     this.bullets.set(id, {
       id,
       ownerId: p.id,
@@ -175,10 +455,12 @@ class World {
       y: by,
       vx, vy,
       r: BULLET_RADIUS + 0.5 * p.stats.bulletDamage,
-      damage: p.bulletDamage,
+      damage: p.bulletDamage * dmgMul,
       pen: p.bulletPenetration,
       hits: 0,
       ttl: now + p.bulletTtlMs,
+      // visual flag — let client paint these differently
+      special: dmgMul > 1.4,
     });
     // recoil
     p.vx -= Math.cos(p.heading) * 60;
@@ -246,6 +528,7 @@ class World {
     for (const [bid, b] of this.bullets) {
       for (const p of this.players.values()) {
         if (!p.alive || p.id === b.ownerId) continue;
+        if (p.isPhased(now)) continue; // phantoms ignore bullets
         const dx = p.x - b.x, dy = p.y - b.y;
         const rsum = b.r + p.radius;
         if (dx * dx + dy * dy < rsum * rsum) {
@@ -412,7 +695,30 @@ class World {
     const bullets = [];
     for (const b of this.bullets.values()) {
       if (inView(b.x, b.y)) {
-        bullets.push({ id: b.id, x: Math.round(b.x), y: Math.round(b.y), r: b.r, o: b.ownerId });
+        bullets.push({ id: b.id, x: Math.round(b.x), y: Math.round(b.y), r: b.r, o: b.ownerId, sp: b.special ? 1 : 0 });
+      }
+    }
+    const blackHoles = [];
+    for (const bh of this.blackHoles.values()) {
+      if (inView(bh.x, bh.y)) {
+        blackHoles.push({
+          id: bh.id,
+          x: Math.round(bh.x), y: Math.round(bh.y),
+          pr: bh.pullRadius, er: bh.explosionRadius,
+          life: Math.max(0, bh.explodesAt - Date.now()),
+          max: bh.explodesAt - bh.bornAt,
+        });
+      }
+    }
+    const strikes = [];
+    for (const st of this.strikes.values()) {
+      if (inView(st.x, st.y)) {
+        strikes.push({
+          id: st.id,
+          x: Math.round(st.x), y: Math.round(st.y),
+          tr: st.targetRadius,
+          wu: Math.max(0, st.warningUntil - Date.now()),
+        });
       }
     }
     return {
@@ -421,6 +727,9 @@ class World {
       players,
       shapes,
       bullets,
+      blackHoles,
+      strikes,
+      fx: { emp: this.empPulses, shells: this.shellHits },
       leaderboard: this.leaderboard(),
       events: this.events.slice(),
       world: this.size,
@@ -437,6 +746,8 @@ class World {
 
   clearEvents() {
     this.events.length = 0;
+    this.empPulses.length = 0;
+    this.shellHits.length = 0;
   }
 }
 

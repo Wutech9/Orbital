@@ -15,6 +15,26 @@
   //   Enter                      — confirm respawn
   // ============================================================
 
+  // ---------- Ability catalogue (client) ----------
+  const CLASSES = [
+    { id:'singularity', name:'Singularity', color:'#A78BFA', ability:'Black Hole',
+      desc:'Drop a gravity well. Pulls enemies in for 3s, then explodes.', stats:'AoE control · 25s CD' },
+    { id:'bombardier',  name:'Bombardier',  color:'#FB923C', ability:'Orbital Strike',
+      desc:'Mark a zone. 5 shells crash down for high burst damage.', stats:'Long range · 30s CD' },
+    { id:'phantom',     name:'Phantom',     color:'#22D3EE', ability:'Phase Shift',
+      desc:'Phase out — invulnerable, faster, next shot deals 2× damage.', stats:'Escape + alpha · 20s CD' },
+    { id:'overdrive',   name:'Overdrive',   color:'#EF4444', ability:'Hyperfire',
+      desc:'Rapid-fire for 4s — 3× reload speed, 1.5× bullet damage.', stats:'Burst DPS · 35s CD' },
+  ];
+  const ABILITY_NAMES = {
+    emp:'EMP Pulse', blackhole:'Black Hole', orbitalstrike:'Orbital Strike',
+    phaseshift:'Phase Shift', hyperfire:'Hyperfire',
+  };
+  const CLASS_R_ABILITY = {
+    singularity:'blackhole', bombardier:'orbitalstrike',
+    phantom:'phaseshift', overdrive:'hyperfire',
+  };
+
   const STATS = ['healthRegen','maxHealth','bodyDamage','bulletSpeed','bulletPenetration','bulletDamage','reload','movementSpeed'];
   const STAT_LABELS = {
     healthRegen:'Health Regen', maxHealth:'Max Health', bodyDamage:'Body Damage',
@@ -99,12 +119,15 @@
       hudScore.textContent = s.self.score;
       hudMass.textContent = s.self.lvl;
       renderStatBar(s.self);
+      renderAbilityHud(s.self);
+      maybeShowClassModal(s.self);
       if (!s.self.alive && !dead) {
         dead = true;
         showDeathOverlay(s.self);
       } else if (s.self.alive && dead) {
         dead = false;
         deathOverlay.classList.remove('show');
+        classModalShown = false; // re-allow class pick after respawn
       }
     }
 
@@ -197,12 +220,50 @@
   }, { passive: false });
   canvas.addEventListener('touchend', () => { mouseShoot = false; });
 
+  function castAbility(slot) {
+    if (!lastState || !lastState.self) return;
+    // Use current world mouse position as target
+    const worldTarget = screenToWorld(mouse.x, mouse.y);
+    socket.emit('ability', { slot, target: worldTarget }, (res) => {
+      if (res && !res.ok) {
+        showToast(res.error || 'Cannot cast');
+      }
+    });
+  }
+
+  function screenToWorld(sx, sy) {
+    if (!lastState || !lastState.self) return null;
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight / 2;
+    return {
+      x: lastState.self.x + (sx - cx),
+      y: lastState.self.y + (sy - cy),
+    };
+  }
+
+  let toastTimer = 0;
+  function showToast(text) {
+    let el = document.getElementById('toast');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'toast';
+      el.style.cssText = 'position:fixed;top:20%;left:50%;transform:translateX(-50%);background:rgba(8,10,22,0.92);border:1px solid var(--panel-border);color:var(--text);padding:10px 16px;border-radius:8px;font-size:14px;z-index:300;pointer-events:none;opacity:0;transition:opacity .15s;';
+      document.body.appendChild(el);
+    }
+    el.textContent = text;
+    el.style.opacity = '1';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.style.opacity = '0'; }, 1400);
+  }
+
   window.addEventListener('keydown', (e) => {
     if (e.repeat) return;
     keys[e.code] = true;
 
     if (e.code === 'KeyE') { autofire = !autofire; }
     else if (e.code === 'KeyC') { autospin = !autospin; }
+    else if (e.code === 'KeyQ') { castAbility('q'); }
+    else if (e.code === 'KeyR') { castAbility('r'); }
     else if (e.code === 'KeyF' && document.fullscreenEnabled) {
       if (!document.fullscreenElement) document.documentElement.requestFullscreen();
       else document.exitFullscreen();
@@ -212,6 +273,11 @@
       const idx = parseInt(e.code.slice(5), 10) - 1;
       socket.emit('upgrade', STATS[idx]);
     }
+  });
+
+  // Click ability slots to cast too
+  document.querySelectorAll('.ability-slot').forEach((el) => {
+    el.addEventListener('click', () => castAbility(el.dataset.slot));
   });
   window.addEventListener('keyup', (e) => { keys[e.code] = false; });
 
@@ -290,6 +356,87 @@
     if (si) si.style.display = (autospin || self.autospin) ? '' : 'none';
   }
 
+  // -------- Ability HUD + class modal --------
+  function renderAbilityHud(self) {
+    const now = Date.now();
+    const cdQ = Math.max(0, (self.cooldowns?.q || 0) - now);
+    const cdR = Math.max(0, (self.cooldowns?.r || 0) - now);
+    const slots = document.querySelectorAll('.ability-slot');
+    slots.forEach((el) => {
+      const slot = el.dataset.slot;
+      const cd = slot === 'q' ? cdQ : cdR;
+      const nameEl = el.querySelector('.ability-name');
+      const cdEl = el.querySelector('.ability-cd');
+      if (slot === 'q') {
+        nameEl.textContent = 'EMP Pulse';
+        el.classList.remove('locked');
+      } else {
+        const cls = self.cls;
+        const aid = CLASS_R_ABILITY[cls];
+        if (aid) {
+          nameEl.textContent = ABILITY_NAMES[aid];
+          el.classList.remove('locked');
+        } else if ((self.lvl || 1) < 15) {
+          nameEl.textContent = `Pick class @ L15`;
+          el.classList.add('locked');
+        } else {
+          nameEl.textContent = 'Pick class (R)';
+          el.classList.remove('locked');
+        }
+      }
+      if (cd > 0) {
+        el.classList.add('cd-active');
+        el.classList.remove('ready');
+        cdEl.textContent = (cd / 1000).toFixed(cd < 10000 ? 1 : 0) + 's';
+      } else {
+        el.classList.remove('cd-active');
+        if (!el.classList.contains('locked')) el.classList.add('ready');
+        else el.classList.remove('ready');
+      }
+    });
+  }
+
+  let classModalShown = false;
+  function maybeShowClassModal(self) {
+    if (classModalShown) return;
+    if (self.alive && self.lvl >= 15 && (!self.cls || self.cls === 'cosmonaut')) {
+      classModalShown = true;
+      showClassModal();
+    }
+  }
+
+  function showClassModal() {
+    const modal = document.getElementById('class-modal');
+    const grid = modal.querySelector('.class-grid');
+    grid.innerHTML = '';
+    CLASSES.forEach((c) => {
+      const card = document.createElement('div');
+      card.className = 'class-card';
+      card.style.borderColor = c.color;
+      card.style.boxShadow = `0 0 0 0 ${c.color}`;
+      card.innerHTML = `
+        <div class="class-name" style="color:${c.color}">${c.name}</div>
+        <div class="class-ability">${c.ability}</div>
+        <p>${c.desc}</p>
+        <div class="class-stats">${c.stats}</div>
+      `;
+      card.addEventListener('mouseenter', () => { card.style.boxShadow = `0 0 24px ${c.color}55`; });
+      card.addEventListener('mouseleave', () => { card.style.boxShadow = `0 0 0 0 ${c.color}`; });
+      card.addEventListener('click', () => {
+        socket.emit('select_class', c.id, (res) => {
+          if (res && res.ok) {
+            modal.style.display = 'none';
+            showToast(`${c.name} chosen — press R or click to use ${c.ability}`);
+          } else if (res && res.error) {
+            showToast(res.error);
+          }
+        });
+      });
+      grid.appendChild(card);
+    });
+    modal.style.display = 'flex';
+  }
+
   // -------- Render --------
   function interp() {
     if (!lastState) return null;
@@ -358,6 +505,11 @@
     // shapes
     for (const sh of s.shapes || []) drawShape(sh);
 
+    // black holes (under tanks)
+    for (const bh of s.blackHoles || []) drawBlackHole(bh);
+    // strike warning circles (under tanks)
+    for (const st of s.strikes || []) drawStrikeWarning(st);
+
     // players (others first, self last)
     const others = s.players.filter((p) => p.id !== s.self.id);
     others.push(s.self);
@@ -365,6 +517,94 @@
 
     // bullets
     for (const b of s.bullets || []) drawBullet(b, s.self.id);
+
+    // ephemeral fx (over everything)
+    if (s.fx) {
+      for (const pulse of s.fx.emp || []) drawEmpRing(pulse);
+      for (const hit of s.fx.shells || []) drawShellHit(hit);
+    }
+  }
+
+  function drawBlackHole(bh) {
+    const r = bh.pr;
+    // pulsating event horizon
+    const t = (performance.now() / 200) % (Math.PI * 2);
+    ctx.save();
+    // outer pull aura
+    const grad = ctx.createRadialGradient(bh.x, bh.y, 8, bh.x, bh.y, r);
+    grad.addColorStop(0, 'rgba(167, 139, 250, 0.55)');
+    grad.addColorStop(0.6, 'rgba(124, 58, 237, 0.18)');
+    grad.addColorStop(1, 'rgba(15, 4, 30, 0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(bh.x, bh.y, r, 0, Math.PI * 2); ctx.fill();
+    // event horizon
+    ctx.beginPath();
+    ctx.arc(bh.x, bh.y, 22 + Math.sin(t) * 3, 0, Math.PI * 2);
+    ctx.fillStyle = '#0a0014';
+    ctx.fill();
+    ctx.strokeStyle = '#A78BFA';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    // rotating accretion ring
+    ctx.beginPath();
+    ctx.arc(bh.x, bh.y, 50 + Math.sin(t * 2) * 4, t * 0.6, t * 0.6 + Math.PI * 1.6);
+    ctx.strokeStyle = 'rgba(167, 139, 250, 0.8)';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawStrikeWarning(st) {
+    const warn = st.wu > 0;
+    ctx.save();
+    // pulsing target circle
+    const t = (performance.now() / 200) % (Math.PI * 2);
+    const pulse = 0.5 + Math.sin(t * 4) * 0.5;
+    ctx.strokeStyle = warn ? `rgba(251, 146, 60, ${0.4 + pulse * 0.5})` : 'rgba(251, 146, 60, 0.15)';
+    ctx.lineWidth = 4;
+    ctx.setLineDash([14, 8]);
+    ctx.beginPath(); ctx.arc(st.x, st.y, st.tr, 0, Math.PI * 2); ctx.stroke();
+    ctx.setLineDash([]);
+    // crosshair
+    ctx.strokeStyle = `rgba(251, 146, 60, ${0.5 + pulse * 0.5})`;
+    ctx.beginPath();
+    ctx.moveTo(st.x - 30, st.y); ctx.lineTo(st.x + 30, st.y);
+    ctx.moveTo(st.x, st.y - 30); ctx.lineTo(st.x, st.y + 30);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawEmpRing(pulse) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(pulse.x, pulse.y, pulse.r, 0, Math.PI * 2);
+    ctx.strokeStyle = '#22D3EE';
+    ctx.lineWidth = 8;
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = '#22D3EE';
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.beginPath();
+    ctx.arc(pulse.x, pulse.y, pulse.r * 0.6, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(34, 211, 238, 0.5)';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawShellHit(hit) {
+    ctx.save();
+    // expanding flash
+    const grad = ctx.createRadialGradient(hit.x, hit.y, 8, hit.x, hit.y, hit.r);
+    grad.addColorStop(0, 'rgba(255, 240, 200, 0.95)');
+    grad.addColorStop(0.4, 'rgba(251, 146, 60, 0.6)');
+    grad.addColorStop(1, 'rgba(127, 29, 29, 0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(hit.x, hit.y, hit.r, 0, Math.PI * 2); ctx.fill();
+    // bright core
+    ctx.fillStyle = '#FED7AA';
+    ctx.beginPath(); ctx.arc(hit.x, hit.y, 14, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
   }
 
   function drawGrid(camX, camY, W, H) {
@@ -398,6 +638,20 @@
   function drawTank(p) {
     const c = skinColor(p.skin);
     const isMe = p.id === lastState?.self?.id;
+    const phased = !!p.ph;
+    const hyperfire = !!p.hf;
+
+    // global alpha for phase
+    const prevAlpha = ctx.globalAlpha;
+    if (phased) ctx.globalAlpha = 0.45;
+
+    // hyperfire aura
+    if (hyperfire) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r * 1.6, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(239, 68, 68, 0.18)';
+      ctx.fill();
+    }
 
     // barrel
     ctx.save();
@@ -405,7 +659,7 @@
     ctx.rotate(p.h || 0);
     const barrelLen = p.r * 1.7;
     const barrelW = p.r * 0.6;
-    ctx.fillStyle = '#888EA0';
+    ctx.fillStyle = hyperfire ? '#EF4444' : '#888EA0';
     ctx.strokeStyle = '#333A4E';
     ctx.lineWidth = 3;
     ctx.beginPath();
@@ -414,14 +668,22 @@
     ctx.stroke();
     ctx.restore();
 
-    // body
+    // body — class color overrides default skin if cls != cosmonaut
+    let bodyFill = c.fill, bodyStroke = c.stroke;
+    if (p.cls && p.cls !== 'cosmonaut') {
+      const cm = CLASSES.find((x) => x.id === p.cls);
+      if (cm) { bodyFill = cm.color; bodyStroke = '#111827'; }
+    }
     ctx.beginPath();
     ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-    ctx.fillStyle = c.fill;
+    ctx.fillStyle = bodyFill;
     ctx.fill();
     ctx.lineWidth = 4;
-    ctx.strokeStyle = c.stroke;
+    ctx.strokeStyle = bodyStroke;
     ctx.stroke();
+
+    // restore alpha for HUD text
+    ctx.globalAlpha = prevAlpha;
 
     // VIP crown
     if (p.vip || p.badge === 'crown-gold') drawCrown(p.x, p.y - p.r - 18, p.r * 0.5);
@@ -490,6 +752,21 @@
   }
 
   function drawBullet(b, myPid) {
+    if (b.sp) {
+      // special (hyperfire / phase-bonus) — orange glow
+      ctx.save();
+      ctx.shadowBlur = 18;
+      ctx.shadowColor = '#FB923C';
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r + 2, 0, Math.PI * 2);
+      ctx.fillStyle = '#FED7AA';
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#9A3412';
+      ctx.stroke();
+      ctx.restore();
+      return;
+    }
     ctx.beginPath();
     ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
     ctx.fillStyle = b.o === myPid ? '#60A5FA' : '#F87171';

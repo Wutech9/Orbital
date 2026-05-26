@@ -40,6 +40,29 @@
     <span>Ad (sidebar)</span>
   </div>
 
+  <!-- Ability cooldown HUD (bottom center) -->
+  <div id="ability-hud">
+    <div class="ability-slot" data-slot="q">
+      <div class="ability-key">Q</div>
+      <div class="ability-name">EMP Pulse</div>
+      <div class="ability-cd"></div>
+    </div>
+    <div class="ability-slot" data-slot="r">
+      <div class="ability-key">R</div>
+      <div class="ability-name">Pick class @ L15</div>
+      <div class="ability-cd"></div>
+    </div>
+  </div>
+
+  <!-- Class selection modal (shown once at L15) -->
+  <div id="class-modal" class="class-modal" style="display:none;">
+    <div class="class-modal-inner">
+      <h2>Level 15 — Choose your class</h2>
+      <p style="color:var(--muted); margin-bottom: 20px;">Each class unlocks a unique R ability. Permanent until you die.</p>
+      <div class="class-grid"></div>
+    </div>
+  </div>
+
   <!-- Stat upgrade bar (diep.io style, bottom left) -->
   <div id="stat-bar"></div>
   <div id="stat-points-wrap">
@@ -81,8 +104,8 @@
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
-<script src="/js/auth.js?v=3"></script>
-<script src="/js/ads.js?v=3"></script>
-<script src="/js/game.js?v=3"></script>
+<script src="/js/auth.js?v=5"></script>
+<script src="/js/ads.js?v=5"></script>
+<script src="/js/game.js?v=5"></script>
 </body>
 </html>
