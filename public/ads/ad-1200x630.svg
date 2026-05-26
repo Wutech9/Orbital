@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#1a1f3a"/>
+      <stop offset="55%" stop-color="#0a0e1c"/>
+      <stop offset="100%" stop-color="#03040a"/>
+    </radialGradient>
+    <linearGradient id="title" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#7c5cff"/>
+      <stop offset="50%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#7c5cff"/>
+    </linearGradient>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" fill="none" stroke="rgba(120,140,200,0.10)" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="blackhole" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0a0014"/>
+      <stop offset="40%" stop-color="#4c1d95"/>
+      <stop offset="80%" stop-color="rgba(167,139,250,0.4)"/>
+      <stop offset="100%" stop-color="rgba(167,139,250,0)"/>
+    </radialGradient>
+    <radialGradient id="flash" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FED7AA"/>
+      <stop offset="35%" stop-color="rgba(251,146,60,0.7)"/>
+      <stop offset="100%" stop-color="rgba(127,29,29,0)"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+
+  <!-- distant stars -->
+  <g fill="#fff" opacity="0.4">
+    <circle cx="60" cy="80" r="1.2"/>
+    <circle cx="180" cy="180" r="1.5"/>
+    <circle cx="1100" cy="80" r="1.5"/>
+    <circle cx="1140" cy="220" r="1"/>
+    <circle cx="980" cy="60" r="1.2"/>
+    <circle cx="240" cy="540" r="1.5"/>
+    <circle cx="1080" cy="540" r="1.2"/>
+    <circle cx="40" cy="380" r="1"/>
+    <circle cx="1160" cy="380" r="1.2"/>
+    <circle cx="600" cy="40" r="1.5"/>
+  </g>
+
+  <!-- BLACK HOLE on left side -->
+  <g transform="translate(220 360)">
+    <circle r="180" fill="url(#blackhole)"/>
+    <circle r="40" fill="#0a0014" stroke="#A78BFA" stroke-width="4"/>
+    <path d="M-78 0 A78 78 0 0 1 78 0" stroke="rgba(167,139,250,0.85)" stroke-width="4" fill="none"/>
+    <path d="M-95 -25 A95 95 0 0 1 95 -25" stroke="rgba(167,139,250,0.45)" stroke-width="3" fill="none"/>
+  </g>
+
+  <!-- ORBITAL STRIKE flash on right side -->
+  <g transform="translate(980 460)">
+    <circle r="120" fill="url(#flash)"/>
+    <circle r="18" fill="#FED7AA"/>
+    <!-- dashed warning crosshair -->
+    <g stroke="rgba(251,146,60,0.8)" stroke-width="3" fill="none" stroke-dasharray="14 8">
+      <circle r="100"/>
+    </g>
+  </g>
+
+  <!-- PLAYER TANK center -->
+  <g transform="translate(600 370)">
+    <!-- hyperfire aura -->
+    <circle r="78" fill="rgba(239,68,68,0.18)"/>
+    <!-- barrel rotated 15 degrees up -->
+    <g transform="rotate(-10)">
+      <rect x="0" y="-15" width="100" height="30" fill="#888EA0" stroke="#333A4E" stroke-width="3"/>
+    </g>
+    <circle r="50" fill="#5B8CFF" stroke="#1F3A8A" stroke-width="5"/>
+    <!-- crown above -->
+    <g transform="translate(0 -78)">
+      <path d="M-22 14 L-22 0 L-11 7 L0 -6 L11 7 L22 0 L22 14 Z" fill="#FBBF24" stroke="#92400E" stroke-width="1.5"/>
+    </g>
+  </g>
+
+  <!-- bullets flying from tank -->
+  <g fill="#FED7AA" stroke="#9A3412" stroke-width="2">
+    <circle cx="715" cy="340" r="10"/>
+    <circle cx="790" cy="320" r="10"/>
+    <circle cx="855" cy="305" r="10"/>
+  </g>
+
+  <!-- some shapes around -->
+  <g>
+    <rect x="80" y="120" width="38" height="38" fill="#FACC15" stroke="#A16207" stroke-width="3" transform="rotate(18 99 139)"/>
+    <rect x="1050" y="120" width="38" height="38" fill="#FACC15" stroke="#A16207" stroke-width="3" transform="rotate(-25 1069 139)"/>
+    <rect x="100" y="540" width="32" height="32" fill="#FACC15" stroke="#A16207" stroke-width="3" transform="rotate(45 116 556)"/>
+    <polygon points="450,100 480,160 420,160" fill="#F87171" stroke="#991B1B" stroke-width="3"/>
+    <polygon points="780,560 810,510 750,510" fill="#F87171" stroke="#991B1B" stroke-width="3"/>
+    <polygon points="540,556 574,576 562,612 522,612 510,576" fill="#60A5FA" stroke="#1E3A8A" stroke-width="3"/>
+  </g>
+
+  <!-- TITLE -->
+  <g>
+    <text x="600" y="150" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="900" font-size="120" fill="url(#title)" letter-spacing="6">ORBITAL</text>
+    <text x="600" y="200" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="600" font-size="26" fill="#E6E9F5" opacity="0.9" letter-spacing="3">FREE MULTIPLAYER TANK ARENA</text>
+  </g>
+
+  <!-- feature bullets -->
+  <g font-family="Inter, system-ui, sans-serif" font-weight="600" font-size="20" fill="#22d3ee">
+    <text x="600" y="240" text-anchor="middle">★ 4 classes &#160;★ Black Hole &#160;★ Orbital Strike &#160;★ Phase Shift &#160;★ Hyperfire</text>
+  </g>
+
+  <!-- URL -->
+  <text x="600" y="595" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="700" font-size="28" fill="#fff">playorbital.up.railway.app</text>
+</svg>

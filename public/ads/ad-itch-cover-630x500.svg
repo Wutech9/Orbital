@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 630 500" width="630" height="500">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#1a1f3a"/>
+      <stop offset="100%" stop-color="#03040a"/>
+    </radialGradient>
+    <linearGradient id="title" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#7c5cff"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="rgba(120,140,200,0.08)" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="bh" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0a0014"/>
+      <stop offset="40%" stop-color="#4c1d95"/>
+      <stop offset="100%" stop-color="rgba(167,139,250,0)"/>
+    </radialGradient>
+  </defs>
+  <rect width="630" height="500" fill="url(#bg)"/>
+  <rect width="630" height="500" fill="url(#grid)"/>
+
+  <text x="315" y="100" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="900" font-size="76" fill="url(#title)" letter-spacing="3">ORBITAL</text>
+  <text x="315" y="140" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="600" font-size="18" fill="#E6E9F5" opacity="0.9" letter-spacing="2">FREE MULTIPLAYER TANK ARENA</text>
+
+  <g transform="translate(150 290)">
+    <circle r="100" fill="url(#bh)"/>
+    <circle r="24" fill="#0a0014" stroke="#A78BFA" stroke-width="3"/>
+    <path d="M-44 0 A44 44 0 0 1 44 0" stroke="rgba(167,139,250,0.85)" stroke-width="3" fill="none"/>
+  </g>
+
+  <g transform="translate(420 290)">
+    <circle r="64" fill="rgba(239,68,68,0.18)"/>
+    <g transform="rotate(-12)">
+      <rect x="0" y="-16" width="80" height="32" fill="#888EA0" stroke="#333A4E" stroke-width="3"/>
+    </g>
+    <circle r="48" fill="#5B8CFF" stroke="#1F3A8A" stroke-width="4"/>
+    <g transform="translate(0 -76)">
+      <path d="M-22 14 L-22 0 L-11 7 L0 -6 L11 7 L22 0 L22 14 Z" fill="#FBBF24" stroke="#92400E" stroke-width="1.5"/>
+    </g>
+  </g>
+
+  <text x="315" y="430" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="600" font-size="18" fill="#22d3ee">Black Hole · Orbital Strike · Phase Shift · Hyperfire</text>
+  <text x="315" y="470" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="800" font-size="22" fill="#fff">playorbital.up.railway.app</text>
+</svg>
