@@ -287,6 +287,27 @@ label { display: block; font-size: 13px; color: var(--muted); margin: 12px 0 6px
 #gdpr-banner p { margin: 0; font-size: 13px; color: var(--muted); max-width: 800px; }
 #gdpr-banner .actions { display: flex; gap: 8px; }
 
+/* Share buttons (lobby hero + death overlay) */
+.share-row {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;
+}
+.share-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(20, 24, 44, 0.85);
+  border: 1px solid var(--panel-border);
+  color: var(--text); font-weight: 700; font-size: 16px;
+  text-decoration: none; cursor: pointer; transition: transform 0.1s, background 0.2s;
+}
+.share-btn:hover { background: var(--accent); border-color: var(--accent); transform: translateY(-2px); text-decoration: none; }
+.share-btn[aria-label="Share to Twitter"]:hover { background: #1DA1F2; }
+.share-btn[aria-label="Share to Reddit"]:hover  { background: #FF4500; }
+.share-btn[aria-label="Share to Facebook"]:hover { background: #1877F2; }
+.share-btn[aria-label="Share to Telegram"]:hover { background: #0088CC; }
+
+#players-online { color: var(--accent-2); font-weight: 700; }
+#top-player { color: var(--gold); font-weight: 600; }
+
 .tabs { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid var(--panel-border); }
 .tab {
   padding: 10px 16px; cursor: pointer; font-size: 14px;

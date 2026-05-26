@@ -4,7 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>Orbital — Playing</title>
-<link rel="stylesheet" href="/css/style.css?v=3">
+<meta property="og:title" content="I'm playing Orbital — join me!">
+<meta property="og:description" content="Free multiplayer tank io game. Drop in and fight.">
+<meta property="og:image" content="https://orbital-production-45a9.up.railway.app/og-image.svg">
+<meta property="og:url" content="https://orbital-production-45a9.up.railway.app/game.html">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/css/style.css?v=4">
 </head>
 <body>
 <canvas id="game-canvas"></canvas>
@@ -63,6 +68,14 @@
     <div style="display:flex; gap:10px;">
       <button class="btn" id="respawn-btn" disabled>Respawn</button>
       <button class="btn secondary" onclick="location.href='/'">Back to menu</button>
+    </div>
+    <div class="share-row" style="margin-top:18px;">
+      <span style="color:var(--muted); font-size:13px; margin-right:8px;">Brag about it:</span>
+      <a id="share-twitter" href="#" target="_blank" rel="noopener" class="share-btn">𝕏</a>
+      <a id="share-reddit"  href="#" target="_blank" rel="noopener" class="share-btn">R</a>
+      <a id="share-facebook" href="#" target="_blank" rel="noopener" class="share-btn">f</a>
+      <a id="share-telegram" href="#" target="_blank" rel="noopener" class="share-btn">✈</a>
+      <button class="share-btn" id="share-copy">🔗</button>
     </div>
   </div>
 </div>

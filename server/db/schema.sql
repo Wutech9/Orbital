@@ -44,6 +44,19 @@ CREATE TABLE IF NOT EXISTS subscriptions (
     created_at              TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Referrals: track who referred whom (organic free growth)
+CREATE TABLE IF NOT EXISTS referrals (
+    id              SERIAL PRIMARY KEY,
+    referrer_id     INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    referee_id      INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (referee_id)
+);
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_count INT NOT NULL DEFAULT 0;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by INT REFERENCES users(id);
+
 CREATE INDEX IF NOT EXISTS idx_cosmetics_user ON cosmetics_owned(user_id);
 CREATE INDEX IF NOT EXISTS idx_purchases_user ON purchases(user_id);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_user ON subscriptions(user_id);
+CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals(referrer_id);

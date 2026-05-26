@@ -37,6 +37,19 @@
 
 <script src="/js/auth.js"></script>
 <script>
+// Pick up referrer from URL or localStorage
+const refFromUrl = new URLSearchParams(location.search).get('ref');
+if (refFromUrl && /^[A-Za-z0-9_]{3,16}$/.test(refFromUrl)) {
+  localStorage.setItem('orbital_ref', refFromUrl);
+}
+const ref = localStorage.getItem('orbital_ref');
+if (ref) {
+  const note = document.createElement('p');
+  note.className = 'success';
+  note.textContent = `Invited by ${ref} — they'll get credit when you sign up.`;
+  document.getElementById('register-form').prepend(note);
+}
+
 document.getElementById('register-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const err = document.getElementById('register-error');
@@ -48,11 +61,12 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
     const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, email, password }),
+      body: JSON.stringify({ username, email, password, ref }),
     });
     const data = await res.json();
     if (!res.ok) { err.textContent = data.error || 'Sign up failed'; return; }
     Auth.setSession(data.token, data.user);
+    localStorage.removeItem('orbital_ref');
     location.href = '/';
   } catch (e) {
     err.textContent = 'Network error.';

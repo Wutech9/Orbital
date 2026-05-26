@@ -26,7 +26,7 @@ function issueToken(user) {
 
 router.post('/register', authLimiter, async (req, res) => {
   try {
-    const { username, email, password } = req.body || {};
+    const { username, email, password, ref } = req.body || {};
     if (typeof username !== 'string' || typeof email !== 'string' || typeof password !== 'string') {
       return res.status(400).json({ error: 'Invalid payload' });
     }
@@ -37,13 +37,33 @@ router.post('/register', authLimiter, async (req, res) => {
     const exists = await db.query('SELECT 1 FROM users WHERE username = $1 OR email = $2', [username, email.toLowerCase()]);
     if (exists.rows.length) return res.status(409).json({ error: 'Username or email already in use.' });
 
+    // Look up referrer (organic growth bonus)
+    let referrerId = null;
+    if (typeof ref === 'string' && USERNAME_RE.test(ref) && ref.toLowerCase() !== username.toLowerCase()) {
+      const refRow = await db.query('SELECT id FROM users WHERE username = $1', [ref]);
+      if (refRow.rows[0]) referrerId = refRow.rows[0].id;
+    }
+
     const hash = await bcrypt.hash(password, BCRYPT_ROUNDS);
     const { rows } = await db.query(
-      `INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3)
+      `INSERT INTO users (username, email, password_hash, referred_by) VALUES ($1, $2, $3, $4)
        RETURNING id, username, email, is_vip, selected_skin, selected_trail, selected_badge, high_score`,
-      [username, email.toLowerCase(), hash],
+      [username, email.toLowerCase(), hash, referrerId],
     );
     const user = rows[0];
+
+    // Credit the referrer
+    if (referrerId) {
+      await db.query(
+        `INSERT INTO referrals (referrer_id, referee_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+        [referrerId, user.id],
+      ).catch(() => {});
+      await db.query(
+        `UPDATE users SET referral_count = referral_count + 1 WHERE id = $1`,
+        [referrerId],
+      ).catch(() => {});
+    }
+
     const token = issueToken(user);
     res.json({ token, user });
   } catch (err) {

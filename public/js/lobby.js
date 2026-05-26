@@ -81,15 +81,49 @@
     location.href = `/game.html?${params.toString()}`;
   }
 
+  async function loadStats() {
+    try {
+      const s = await fetch('/api/stats').then((r) => r.json());
+      const po = document.getElementById('players-online');
+      if (po) po.textContent = s.playersOnline;
+    } catch {}
+  }
+
+  function setupShareButtons() {
+    // Persist referrer if URL has ?ref=name
+    const url = new URL(location.href);
+    const ref = url.searchParams.get('ref');
+    if (ref && /^[A-Za-z0-9_]{3,16}$/.test(ref)) {
+      localStorage.setItem('orbital_ref', ref);
+    }
+    // Copy share link (includes user's nickname as ref if logged in)
+    document.getElementById('copy-link')?.addEventListener('click', async () => {
+      const user = window.Auth?.getUser?.();
+      const base = location.origin + '/';
+      const link = user ? `${base}?ref=${encodeURIComponent(user.username)}` : base;
+      try {
+        await navigator.clipboard.writeText(link);
+        const btn = document.getElementById('copy-link');
+        const old = btn.textContent;
+        btn.textContent = '✓';
+        setTimeout(() => { btn.textContent = old; }, 1400);
+      } catch {
+        prompt('Copy this link:', link);
+      }
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     loadRooms();
     loadGlobalLeaderboard();
+    loadStats();
+    setupShareButtons();
     document.getElementById('play-btn')?.addEventListener('click', play);
     document.getElementById('join-code-btn')?.addEventListener('click', joinByCode);
     document.getElementById('nickname')?.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') play();
     });
-    // Refresh room counts every 4s while on lobby
     setInterval(loadRooms, 4000);
+    setInterval(loadStats, 10000);
   });
 })();

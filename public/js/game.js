@@ -124,6 +124,7 @@
     if (heading) heading.textContent = 'You were destroyed';
     const fact = deathOverlay.querySelector('#death-fact');
     if (fact) fact.textContent = `Reached level ${finalLevel} · scored ${finalScore}`;
+    setupShareLinks(self, finalLevel, finalScore);
     const start = Date.now();
     const tick = () => {
       const elapsed = Date.now() - start;
@@ -143,6 +144,35 @@
     socket.emit('respawn');
     deathOverlay.classList.remove('show');
   });
+
+  function setupShareLinks(self, lvl, score) {
+    const user = window.Auth?.getUser?.();
+    const ref = user ? `?ref=${encodeURIComponent(user.username)}` : '';
+    const shareUrl = `${location.origin}/${ref}`;
+    const text = `I reached level ${lvl} with ${score} points in Orbital — a free multiplayer tank io game. Beat my score:`;
+    const enc = encodeURIComponent;
+    const t = document.getElementById('share-twitter');
+    const r = document.getElementById('share-reddit');
+    const f = document.getElementById('share-facebook');
+    const tg = document.getElementById('share-telegram');
+    if (t)  t.href  = `https://twitter.com/intent/tweet?text=${enc(text + ' ' + shareUrl)}`;
+    if (r)  r.href  = `https://www.reddit.com/submit?url=${enc(shareUrl)}&title=${enc(text)}`;
+    if (f)  f.href  = `https://www.facebook.com/sharer/sharer.php?u=${enc(shareUrl)}&quote=${enc(text)}`;
+    if (tg) tg.href = `https://t.me/share/url?url=${enc(shareUrl)}&text=${enc(text)}`;
+    const copy = document.getElementById('share-copy');
+    if (copy && !copy._wired) {
+      copy._wired = true;
+      copy.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(`${text} ${shareUrl}`);
+          copy.textContent = '✓';
+          setTimeout(() => { copy.textContent = '🔗'; }, 1400);
+        } catch {
+          prompt('Copy this:', `${text} ${shareUrl}`);
+        }
+      });
+    }
+  }
 
   // -------- Input --------
   const keys = Object.create(null);
