@@ -105,7 +105,14 @@ app.use('/api/stripe', stripeRoutes);
 // Static client
 app.use(express.static(path.join(__dirname, 'public'), {
   etag: true,
-  maxAge: IS_PROD ? '1h' : 0,
+  // Disable browser disk caching for now so iteration is fast. ETag-based
+  // revalidation still happens (304s) so this isn't a bandwidth disaster.
+  // When the game stabilises, switch the JS/CSS to versioned URLs and bring
+  // a long maxAge back.
+  maxAge: 0,
+  setHeaders: (res, p) => {
+    if (p.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache');
+  },
 }));
 
 // SPA-style fallback for root: send index.html
